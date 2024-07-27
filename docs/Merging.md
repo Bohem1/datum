@@ -1,4 +1,4 @@
-Important Note:
+# Important Note
 
 a lookup done at different 'layers' of the hierarchy (different PropertyPath) will return different value at the same property path:
 
@@ -17,14 +17,9 @@ lookup MergeTest1\MergeHash
 # HashKey2                       FromEnvironment
 # HashKey3                       FromEnvironment
 # HashKey1                       FromRole
-
 ```
 
-
-
-
-
-```
+```text
     # if $ref is a
     #   base type:
     #       --> Return $ref

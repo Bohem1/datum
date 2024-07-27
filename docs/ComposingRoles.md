@@ -26,10 +26,9 @@ Configuration MyDSCConfig {
 
 This is a good way to get started and works well for small-ish configurations, but it gets out of hand pretty quickly, as it's hard to read all the `if` statements and their content. Some variant of this are using `Where` clauses around the Node expression.
 
-
 ## Puppet and the [_Role and Profiles_ model](https://puppet.com/docs/pe/2017.2/r_n_p_intro.html)
 
-The puppet community uses and recommend a very neat model for composing _complete system configurations_, while managing the complexity by modularising parts of the code into re-usable and cohesive components, while loosely coupling them.
+The puppet community uses and recommend a very neat model for composing _complete system configurations_, while managing the complexity by modularizing parts of the code into re-usable and cohesive components, while loosely coupling them.
 
 They also have comprehensive and well-written documentation with real-life  examples available on their website, making it easy to learn.
 
@@ -40,12 +39,13 @@ This article is a quick explanation of the principle and how to do something ver
 I find the names of the **DSC code constructs** potentially confusing for people not already familiar with their specificities and how to compose them into system configurations.
 
 The DSC code constructs are:
+
 - [DSC Resource](https://msdn.microsoft.com/en-us/powershell/dsc/authoringresourcemof) (or [class based](https://msdn.microsoft.com/en-us/powershell/dsc/authoringresourceclass))
 - [DSC Configuration](https://msdn.microsoft.com/en-us/powershell/dsc/configurations)
 - [DSC Composite Configuration](https://msdn.microsoft.com/en-us/powershell/dsc/compositeconfigs)
 - [DSC Composite Resource](https://msdn.microsoft.com/en-us/powershell/dsc/authoringresourcecomposite)
 
-As you see, to avoid confusion, I like to prefix their name with 'DSC' when talking about the code constructs, in order to separate them clearly from my attempt of vulgarising the composition model for DSC:
+As you see, to avoid confusion, I like to prefix their name with 'DSC' when talking about the code constructs, in order to separate them clearly from my attempt of vulgarizing the composition model for DSC:
 
 - **Configuration Data** [data]
 - **Configurations** [DSC Configuration + DSC Composite Resources]
@@ -56,20 +56,19 @@ Yep, until proven otherwise, **I don't find DSC Composite Configurations useful*
 I've already discussed **[the DSC Configuration Data Problem](https://gaelcolas.com/2018/01/29/the-dsc-configuration-data-problem/)** and how it should be structured at a high level, so I'll completely ignore my advice, and _Keep It Super Simple_ to focus on the **Composition Model**.
 
 I see the composition model as a succession of abstraction layers:
-- the top layer, the **Configuration Data Layer** is 'tool agnostic' (it's just structured data), and the most high-level. This is where changes happen more often, and should be very declarative and self documenting, representing the business context for the entities it describes (i.e. `Nodes`, but not exclusively). You can call it the **Policies**, because the Data is structured into documents that describe what the entity/object it represents should look like. 
+
+- the top layer, the **Configuration Data Layer** is 'tool agnostic' (it's just structured data), and the most high-level. This is where changes happen more often, and should be very declarative and self documenting, representing the business context for the entities it describes (i.e. `Nodes`, but not exclusively). You can call it the **Policies**, because the Data is structured into documents that describe what the entity/object it represents should look like.
 _DSC is the platform to converge the entities into compliance_.
 
-- the middle layer is the **Configuration layer**, where the data is adapted, transformed and massaged slighlty from business-specific structure into something that makes sense for the Resources, with just a **touch** of orchestration (think [dependsOn](https://docs.microsoft.com/en-us/powershell/dsc/configurations#using-dependson) and [waitfor*](https://docs.microsoft.com/en-us/powershell/dsc/crossnodedependencies)...). The configuration usually build a 'layered technology stack', in a cohesive unit that represents an entity. For instance you could compose NIC, System Disk, OS, Domain, Accounts to represent a basic system.
+- the middle layer is the **Configuration layer**, where the data is adapted, transformed and massaged slightly from business-specific structure into something that makes sense for the Resources, with just a **touch** of orchestration (think [dependsOn](https://docs.microsoft.com/en-us/powershell/dsc/configurations#using-dependson) and [waitfor*](https://docs.microsoft.com/en-us/powershell/dsc/crossnodedependencies)...). The configuration usually build a 'layered technology stack', in a cohesive unit that represents an entity. For instance you could compose NIC, System Disk, OS, Domain, Accounts to represent a basic system.
 
 - At the bottom, the **Resource layer** is the interface with a specific technology, where atomic changes are made. It should have very little logic handling the overall goal, but transpose the DSL into actionable and idempotent actions. It usually is the DSC interface to imperative modules, whether they're PowerShell modules, or other such as [Python or C DSC resources for Linux](https://docs.microsoft.com/en-us/powershell/dsc/lnxgroupresource).
-
-
+s
 The common mistakes I've seen, is **over-specializing** the middle or lower layer, usually **in response to the challenge** posed with managing **Configuration Data**.
 
-This surfaces when using too many [ DSC Script Resources](https://docs.microsoft.com/en-us/powershell/dsc/scriptresource) (instead of custom [DSC Resources](https://docs.microsoft.com/en-us/powershell/dsc/authoringresourcemof)), or having big monolithic configurations with lots of logic, and unhelpful parameters (i.e. passing the whole `$ConfigurationData`).
+This surfaces when using too many [DSC Script Resources](https://docs.microsoft.com/en-us/powershell/dsc/scriptresource) (instead of custom [DSC Resources](https://docs.microsoft.com/en-us/powershell/dsc/authoringresourcemof)), or having big monolithic configurations with lots of logic, and unhelpful parameters (i.e. passing the whole `$ConfigurationData`).
 
 From these layers, how can we compose Configurations in a flexible way, that can be self-documenting, flexible, with a reduced _change domain_ (aka change scope)?
-
 
 ## One Role, multiple Configurations
 
@@ -78,6 +77,7 @@ If we think about some kind of **application running on a server**, you can easi
 Now, we may want to run that application on two different types of server, so we'd have **ServerType1** and **ServerType2** both running an instance of **Application**.
 
 That gives us 2 unique compositions:
+
 - ServerType1_Application
 - ServerType2_Application
 
@@ -99,7 +99,7 @@ One way we could interpret the `ServerType1_application` composition could be:
 
 In Puppet's _Role and Profiles_ model, that's a Role definition, including two profiles. For DSC I'd call it the **Roles and Configurations model**.
 
-We can now imagine that we associate several `Nodes` with this role, and we can start raising cattles! The nodes kinda 'instantiate' the Roles.
+We can now imagine that we associate several `Nodes` with this role, and we can start raising cattle! The nodes kinda 'instantiate' the Roles.
 
 Assuming a Configuration Data structure like the one below, we have simple Nodes implementing Unique roles, composed of re-usable Configurations but with Data specific to the role.
 
@@ -138,7 +138,6 @@ $ConfigurationData = @{
         }
     }
 }
-
 ```
 
 The Configurations (DSC Composite Resources) would be re-usable, and probably live in different PowerShell modules (maybe one for the Platform and one for the Application or Product).
@@ -165,10 +164,9 @@ foreach($Node in $ConfigurationData.AllNodes) {
         &$ConfigurationName @ConfigurationParameters
     }
 }
-
 ```
 
-Should we define the function to **'splat' the DSC Composite Resouce** like so (available in Datum):
+Should we define the function to **'splat' the DSC Composite Resource** like so (available in Datum):
 
 ```PowerShell
 function Global:Get-DscSplattedResource {
@@ -208,7 +206,6 @@ function Global:Get-DscSplattedResource {
 }
 Set-Alias -Name x -Value Get-DscSplattedResource -scope Global
 ```
-
 
 The actual DSC would look like this:
 

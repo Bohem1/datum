@@ -1,12 +1,13 @@
 # Datum Redirections
 
-Natively, Datum does not support redirections **YET**.
+Natively, Datum does not support redirection **YET**.
 That said, you can implement it quite easily thanks to the (under documented) feature of the Datum Handlers.
 
 ## The Built-In Test Handler & Principle
-In some examples, the `Datum.yml` contains the following block:
-```yaml
 
+In some examples, the `Datum.yml` contains the following block:
+
+```yaml
 DatumHandlers:
   Datum::TestHandler: # Datum\Test-TestHandlerFilter & Invoke-TestHandlerAction
     CommandOptions:
@@ -19,7 +20,7 @@ If the result of this test is `$true`, then the Test Handler Action is triggered
 
 As an example, a company using Datum to manage their infrastructure data with DSC has created a **SecretServer** Datum Handler, to retrieve Credentials Objects from their _Thycotic SecretServer_.
 
-## Filter 
+## Filter
 
 The Test filter do a simple matches for `$InputObject -is [string] -and $InputObject -match "^\[TEST=(?<data>[\w\W])*\]$"`.
 
@@ -30,6 +31,7 @@ When the Data is like `Test: '[TEST=Roles\Role1\Shared1\DestinationPath]'` the H
 Datum will automatically try to fill the parameters defined in the Action function from the available variables.
 
 By default (in DSC at least), you probably have the following variables already available:
+
 ```PowerShell
 $Datum
 $InputObject
@@ -53,7 +55,7 @@ function Invoke-TestHandlerAction {
     Action: $handler
     Node: $($Node|FL *|Out-String)
     Params: 
-$($PSBoundParameters | Convertto-Json)
+$($PSBoundParameters | ConvertTo-Json)
 "@
 }
 ```
@@ -63,6 +65,7 @@ Now you can change what you've learned to modify it or create your own, and foll
 ## Changing the Test Handler's action to follow a redirection
 
 You can change the Invoke-TestHandlerAction function to follow an absolute path in in the Datum object.
+
 ```PowerShell
 # Invoke-TestHandlerAction.ps1
 function Invoke-TestHandlerAction {
@@ -77,7 +80,6 @@ function Invoke-TestHandlerAction {
 ```
 
 Now when the Datum - as in AllNodes\DEV\SRV01.yml - has a property `test` like so: `Test: '[TEST=Roles\Role1\Shared1\DestinationPath]'`, it will be returned the value available in `$Datum.Roles.Role1.Shared1.DestinationPath`, in this case: the `Test` property will be `C:\MyRoleParam.txt`.
-
 
 ## Doing a nested lookup
 
@@ -99,7 +101,6 @@ In a module named _**YourModuleName**_ you should create two functions called:
 Make it available in your PowerShell session (i.e. Module autoload and in `$Env:PSModulePath`), and declare it in the `Datum.yml` configuration (always reload your `$Datum` when changing `Datum.yml`):
 
 ```yaml
-
 YourModuleName:
   YourModuleName::YourHandlerName: # Datum\Test-TestHandlerFilter & Invoke-TestHandlerAction
     CommandOptions:

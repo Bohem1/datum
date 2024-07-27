@@ -1,8 +1,8 @@
 # Layering the DSC code
 
-While the DSC code can be organised with constructs such as Resources, Composite Resources, Configuration and Composite Configurations; those are providing modularity and re-usability of code, and where the PowerShell module is the natural solution for Packaging them as artifacts.
+While the DSC code can be organized with constructs such as Resources, Composite Resources, Configuration and Composite Configurations; those are providing modularity and re-usability of code, and where the PowerShell module is the natural solution for Packaging them as artifacts.
 
-While those elements are the core components of the interface to the **DSC platform**, it does not prescribe a logical organisation or implementation of DSC as a solution, it only defines the interface with the components of the systems.
+While those elements are the core components of the interface to the **DSC platform**, it does not prescribe a logical organization or implementation of DSC as a solution, it only defines the interface with the components of the systems.
 
 In an effort to design an implementation of **a** solution based on DSC, we take an opinionated approach, adding terminology not part of the DSC platform, and recommending practices we believe helps in making a coherent and manageable system at scale.
 The approach is heavily inspired from Chef's Roles, Role Attributes, Databags and runlists, or Puppet's Roles and Profiles model backed with Hiera.
@@ -22,16 +22,17 @@ The problem here, is because that MOF is used on several nodes, it cannot have A
 Although it's a goal to have (you should avoid uniqueness, that makes Pets and snowflakes), the reality is that most systems usually need some unique properties, and configuration overrides on specific settings, based on Site, Domain, Platform, Environment and so on...
 Usually, in such implementations, all unique parts are managed outside of the Configuration Management software, likely a traditional tool not managed from code (think VM provisioning for instance).
 
-Partials can even decouple the unit of configuration further (at great risks), by allowing those named configuration to be authored, delivered and applied independently from each other, so that one Named config can do something, and the other one undo it, at every DSC Run...
+Partials can even decouple the unit of configuration further (at great risks), by allowing those named configuration to be authored, delivered and applied independently from each other, so that one Named config can do something, and the other one undo it, at every DSC Run.
 
-The reason those approaches are popular, is because DSC's composition model seems very limited, and can be without appropriate tooling. 
+The reason those approaches are popular, is because DSC's composition model seems very limited, and can be without appropriate tooling.
 
-The first examples and tutorials people see about DSC show how to add Configuration Data to a specific Node under the `AllNodes\SRV01`, and pass it to the configuration. Then the examples shows how to use that data in a configuration, using `$Node.DataKey`, and also introduce the `$ConfigurationData.NonNodeData`. This gets the idea across, but seems to limit that the data can be either Specificly defined to the Node and nowhere else, or in some generic key with no relation to the Node.
+The first examples and tutorials people see about DSC show how to add Configuration Data to a specific Node under the `AllNodes\SRV01`, and pass it to the configuration. Then the examples shows how to use that data in a configuration, using `$Node.DataKey`, and also introduce the `$ConfigurationData.NonNodeData`. This gets the idea across, but seems to limit that the data can be either specifically defined to the Node and nowhere else, or in some generic key with no relation to the Node.
 
-The more advanced tutorials show how to leverage those NonNodeData to organise DATA per role, for clarity, but it still misses some capabilities for composing the data, overriding where we need it, when we need it, without changing the code, or the global value.
+The more advanced tutorials show how to leverage those NonNodeData to organize DATA per role, for clarity, but it still misses some capabilities for composing the data, overriding where we need it, when we need it, without changing the code, or the global value.
 
-As an example, imagine you have 3 identical Web servers, all with the exact same configuration. 
+As an example, imagine you have 3 identical Web servers, all with the exact same configuration.
 You can easily define some basic properties in the configuration data such as:
+
 ```PowerShell
 $ConfigurationData = @{
     AllNodes = @(
@@ -53,23 +54,26 @@ $ConfigurationData = @{
     }
 }
 ```
+
 In this config data we did a good job at separating the Node Data and the Role data, by creating a _nonNodeData_ for our role called WebServerRole.
 Should we want to change that port to all server, a simple change to that configuration data.
 
 The problem is when we want to deploy a new instance, say SRV04, but on a different port, like 8443. If the configuration is using `$ConfigurationData.WebServerRole.Port`, you're out of luck, and you might need to add conditional logic in the configuration, create a new role, or find another way around.
 
 This highlight one common problem, the need for override-only data structures:
+
 1. specify the default value for a Role
 2. allow overrides at different logical levels
 
-Overrides usually follow a logical hierarchy in the user's context, from the most Generic to the most specific. To avoid pets and raise cattles, you aim to only specify settings in the most generic layer. But real life will throw cases where you have to have some deviation from it:
+Overrides usually follow a logical hierarchy in the user's context, from the most Generic to the most specific. To avoid pets and raise cattle, you aim to only specify settings in the most generic layer. But real life will throw cases where you have to have some deviation from it:
+
 - Environment Specific: In my environment _`x`_, I want to override the backup retention period.
 - Site specific: In my site _`y`_ the encryption algorithm must be different.
 - Node Specific: That Node _`z`_ should listen on port 80, during some troubleshooting.
 
 With a hierarchical, override-only data structure you can also override the same setting at different layers of the hierarchy.
 
-For example, you have a default value for the port to use for a web service, overidden for your test environment, but overriden again for a specific Node of that environment during some testing.
+For example, you have a default value for the port to use for a web service, overridden for your test environment, but overridden again for a specific Node of that environment during some testing.
 
 Another common case, is where you want those 'layers' to not completely replace the value, but do something more clever: merging the data.
 
@@ -87,7 +91,6 @@ Sometimes, along with the **DSC Resources** we bundle those atomic features toge
 
 Those **DSC Resources** and **DSC Composite Resources** should be packaged in functionally coherent **modules** (the PowerShell Module kind) managing a single stack or technology. The goal of those constructs is to abstract the code and provide an Interface by exposing parameters.
 
-
 ## The Configurations: [Configuration + Composite Resources]
 
 When assembling different technologies together to solve a specific use case (or story --> hint to the method to use), such as Java + Jenkins for a Build server, we assemble them in a **DSC Composite Resource**, that wrap the technologies into a re-usable unit, creating a simpler & cohesive interface, with a higher level of abstraction to interact with. The **DSC composite Resource** is executed at MOF Compilation Time when generating the MOF.
@@ -98,16 +101,17 @@ As the `DSC Configuration` block can only be unique for the reasons above, we so
 
 One of the great advantage of **DSC Composite Resource** as a configuration block, is that they can be shared in a familiar versioned artifact, the **PowerShell module**, while specifying dependencies and so on.
 
-
 ## The Roles: [Data]
 
 Finally in our implementation of a solution based on the DSC platform, we define the Role as the wrapper of multiple configuration components (imagine a role composed of the Configuration blocks WindowsBase, SecurityBase, WebServer, MySite1).
 
 The role is not a code construct, but metadata to define:
+
 - A single role per Node
 - Multiple Configurations in a Role
 
 This could be defined in a YAML document such as:
+
 ```yaml
 Role::Jenkins:
   - MyCompanyConfigs::WindowsServerBase
@@ -116,6 +120,7 @@ Role::Jenkins:
 ```
 
 Given the class assigned to a Node, this could result in integrating the Composite Resources for that node such as:
+
 ```PowerShell
 WindowsServerBase ComputerGeneratedName1 {
     <# ... #>
@@ -128,10 +133,11 @@ WebSecurityHardening ComputerGeneratedName2 {
 JenkinsConfig ComputerGeneratedName2 {
     <# ... #>
 }
-
 ```
+
 Those DSC Composite Resources would in turn define DSC Resources, the next level of abstraction.
 
 As you can see, we're now missing a few links:
- - How the Parameters to the configuration and resources works
- - How the Configuration look like
+
+- How the Parameters to the configuration and resources works
+- How the Configuration look like
