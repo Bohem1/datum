@@ -133,7 +133,7 @@ function Merge-DatumArray
             # UniqueByProperties
             '^Unique'
             {
-                Write-Debug -Message "`t`t`tSelecting Unique Hashes accross both arrays based on Property tuples"
+                Write-Debug -Message "`t`t`tSelecting Unique Hashes across both arrays based on Property tuples"
                 # look at each $DiffItems in $DiffArray
                 #   if no PropertyNames defined, use all Properties of $DiffItem
                 #   else use defined PropertyNames
