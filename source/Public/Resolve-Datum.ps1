@@ -46,7 +46,7 @@ function Resolve-Datum
 
     # Manage lookup options:
     <#
-    default_lookup_options  Lookup_options  options (argument)  Behaviour
+    default_lookup_options  Lookup_options  options (argument)  Behavior
                 MostSpecific for ^.*
     Present         default_lookup_options + most Specific if not ^.*
         Present     lookup_options + Default to most Specific if not ^.*
@@ -182,7 +182,7 @@ function Resolve-Datum
         $currentSearch = Join-Path -Path $searchPrefix -ChildPath $PropertyPath
         Write-Verbose -Message ''
         Write-Verbose -Message " Lookup <$currentSearch> $($Node.Name)"
-        #extract script block for execution into array, replace by substition strings {0},{1}...
+        #extract script block for execution into array, replace by substituting strings {0},{1}...
         $newSearch = [regex]::Replace($currentSearch, $pattern, {
                 param (
                     [Parameter()]
