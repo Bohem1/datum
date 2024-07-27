@@ -54,7 +54,7 @@ function New-DatumStructure
                 }
                 $datumHierarchyFolder = $DefinitionFile.Directory.FullName
                 $DatumHierarchyDefinition.DatumDefinitionFile = $DefinitionFile
-                Write-Debug -Message "Datum Hierachy Parent folder: $datumHierarchyFolder"
+                Write-Debug -Message "Datum Hierarchy Parent folder: $datumHierarchyFolder"
             }
             else
             {
@@ -87,7 +87,7 @@ function New-DatumStructure
         }
     }
 
-    # Define the default hierachy to be the StoreNames, when nothing is specified
+    # Define the default hierarchy to be the StoreNames, when nothing is specified
     if ($datumHierarchyFolder -and -not $DatumHierarchyDefinition.ResolutionPrecedence)
     {
         if ($DatumHierarchyDefinition.Contains('ResolutionPrecedence'))
