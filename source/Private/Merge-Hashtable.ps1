@@ -58,7 +58,7 @@ function Merge-Hashtable
         Write-Debug -Message "`t  CurrentKey: $currentKey"
         if ($currentKey -in $knockedOutKeys)
         {
-            Write-Debug -Message "`t`tThe Key $currentkey is knocked out from the reference Hashtable."
+            Write-Debug -Message "`t`tThe Key $currentKey is knocked out from the reference Hashtable."
         }
         elseif ($currentKey -match $knockoutPrefixMatcher -and -not $ReferenceHashtable.Contains(($currentKey -replace $knockoutPrefixMatcher)))
         {
@@ -66,7 +66,7 @@ function Merge-Hashtable
             Write-Debug -Message "`t`tKnockout prefix found for $currentKey in Difference hashtable, and key not set in Reference hashtable"
             if (-not $ReferenceHashtable.Contains($currentKey))
             {
-                Write-Debug -Message "`t`t..adding knockout prefixed key for $curretKey to block further merges"
+                Write-Debug -Message "`t`t..adding knockout prefixed key for $currentKey to block further merges"
                 $clonedReference.Add($currentKey, $null)
             }
         }
