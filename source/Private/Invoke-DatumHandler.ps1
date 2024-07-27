@@ -7,8 +7,8 @@ function Invoke-DatumHandler
     .DESCRIPTION
         This function goes through all datum handlers configured in the 'datum.yml'. For all handlers, it calls the test function
         first that identifies if the particular handler should be invoked at all for the given InputString. The test function
-        look for a prefix and suffix in orer to know if a handler should be called. For the handler 'Datum.InvokeCommand' the
-        prefix is '[x=' and the siffix '=]'.
+        look for a prefix and suffix in order to know if a handler should be called. For the handler 'Datum.InvokeCommand' the
+        prefix is '[x=' and the suffix '=]'.
 
         Let's assume the handler is defined in a module named 'Datum.InvokeCommand'. The handler is introduced in the 'datum.yml'
         like this:
@@ -35,7 +35,7 @@ function Invoke-DatumHandler
 
     .EXAMPLE
         This sample calls the handlers defined in the 'Datum.yml' on the value  '[x= { Get-Date } =]'. Only a handler will
-        be invoked that has the prefix '[x=' and the siffix '=]'.
+        be invoked that has the prefix '[x=' and the suffix '=]'.
 
         PS C:\> $d = New-DatumStructure -DefinitionFile .\tests\Integration\assets\DscWorkshopConfigData\Datum.yml
         PS C:\> $result = $nul
