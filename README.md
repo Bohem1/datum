@@ -40,11 +40,11 @@ A new version is in the works, encouragement welcomed. :)
 
 ## 1. Why Datum?
 
-This PowerShell Module enables you to easily manage a **Policy-Driven Infrastructure** using **Desired State Configuration** (DSC), by letting you organise the **Configuration Data** in a hierarchy adapted to your business context, and injecting it into **Configurations** based on the Nodes and the Roles they implement.
+This PowerShell Module enables you to easily manage a **Policy-Driven Infrastructure** using **Desired State Configuration** (DSC), by letting you organize the **Configuration Data** in a hierarchy adapted to your business context, and injecting it into **Configurations** based on the Nodes and the Roles they implement.
 
 This (opinionated) approach allows to raise **cattle** instead of pets, while facilitating the management of Configuration Data (the **Policy** for your infrastructure) and provide defaults with the flexibility of specific overrides, per layers, based on your environment.
 
-The Configuration Data is composed in a customisable hierarchy, where the storage can be using the file system, and the format Yaml, Json, PSD1 allowing all the use of version control systems such as git.
+The Configuration Data is composed in a customizable hierarchy, where the storage can be using the file system, and the format Yaml, Json, PSD1 allowing all the use of version control systems such as git.
 
 ### Notes
 
@@ -61,7 +61,7 @@ A stable v1 release is expected for March 2018, while some concepts are thought 
 
 ### Data Layers and Precedence
 
-To simplify the key concept, a Datum hierarchy is some blocks of data (nested hashtables) organised in layers, so that a subset of data can be overridden by another block of data from another layer.
+To simplify the key concept, a Datum hierarchy is some blocks of data (nested hashtables) organized in layers, so that a subset of data can be overridden by another block of data from another layer.
 
 Assuming you have configured two layers of data representing:
 
@@ -251,7 +251,7 @@ To do so, we define our Infrastructure in a set of Policies: human-readable docu
 
 We then interpret and transform the data to pass it over to the platform (DSC) and technology components (DSC Resources) grouped in manageable units (Resources, Configurations, and PowerShell Modules).
 
-Finally, the decentralised execution of the platform can let the nodes converge towards their policy.
+Finally, the decentralized execution of the platform can let the nodes converge towards their policy.
 
 The policies and their execution are composed in layers of abstraction, so that people with different responsibilities, specialisations and accountabilities have access to the right amount of data in the layer they operate for their task.
 
@@ -307,7 +307,6 @@ Below, we only say where the Node is located, what role is associated to it, its
 NodeName: 9d8cc603-5c6f-4f6d-a54a-466a6180b589
 role: WindowsServerDefault
 Location: LON
-
 ```
 
 ### _Excerpt of DSC Composite Resource (aka. Configuration)_
@@ -377,7 +376,6 @@ configuration "RootConfiguration"
 }
 
 RootConfiguration -ConfigurationData $ConfigurationData -Out "$BuildRoot\BuildOutput\MOF\"
-
 ```
 
 ## 4. Under the hood
@@ -493,7 +491,6 @@ ResolutionPrecedence:
   - 'Environments'
   - 'Location'
   - 'Roles\All'
-
 ```
 
 In this case the lookup function would _try_ the following absolute paths sequentially:
@@ -505,7 +502,7 @@ $Datum.Location.property.Subkey
 $Datum.Roles.All.property.Subkey
 ```
 
-Although you can configure Datum to behave differently based on your needs, like merging together the data found at each layer, the most common and simple case, is when you only want the **'MostSpecific'** data defined in the hierarchy (and this is the default behaviour).
+Although you can configure Datum to behave differently based on your needs, like merging together the data found at each layer, the most common and simple case, is when you only want the **'MostSpecific'** data defined in the hierarchy (and this is the default behavior).
 
 In that case, even if you usually define the data in the `roles` layer (the most generic layer), if there's an override in a more specific layer, it will be used instead.
 
@@ -567,7 +564,7 @@ Regardless of the Datum Store Provider used (there's only the Datum File Provide
 but you can write your own), Datum tries to handle the data similarly to an ordered case-insensitive Dictionary, where possible (i.e. PSD1 don't support Ordering).
 All data is referenced under one variable, so it looks like a big tree with many branches and leafs like the one below.
 
-```
+```text
 $Datum
   +
   |
@@ -578,7 +575,7 @@ $Datum
   |    |      role: Role1
   |    |      Location: Lon
   |    |      ExampleProperty1: 'From Node'
-  |    |      Test: '[TEST=Roles\Role1\Shared1\DestinationPath
+  |    |      Test: '[TEST=Roles\Role1\Shared1\DestinationPath]'
   |    |
   |    +-+PROD
   |
@@ -598,7 +595,8 @@ $Datum
        +-+Lon
 ```
 
-If you provide a key, Datum will return All values underneath (to the right):
+If you provide a key, Datum will return all values underneath (to the right):
+
 ```PowerShell
 $Datum.AllNodes.Environments
 
@@ -607,11 +605,12 @@ $Datum.AllNodes.Environments
 # {Description, Test} {Description}
 ```
 
-#### Lookup Merging Behaviour
+#### Lookup Merging Behavior
 
 In the Tree described above, the Lookup function iterates through the ResolutionPrecedence's key prefix, and append the provided key suffix:
 
 For the following ResolutionPrecedence:
+
 ```yaml
 ResolutionPrecedence:
   - 'AllNodes\$($Node.Environment)\$($Node.Name)'
@@ -620,29 +619,32 @@ ResolutionPrecedence:
 ```
 
 Within the `$Node` block, doing `Lookup 'Configurations'` will actually look for:
- - `$Datum.AllNodes.($Node.Environment).($Node.Name).Configurations`
- - `$Datum.Roles.($Node.Role).Configurations`
- - `$Datum.Roles.All.Configurations`
 
-By default the merge behaviour is to **not merge**, which means the first occurence will be returned and the lookup stopped.
+- `$Datum.AllNodes.($Node.Environment).($Node.Name).Configurations`
+- `$Datum.Roles.($Node.Role).Configurations`
+- `$Datum.Roles.All.Configurations`
 
-The other merge behaviours depends on the (rough) data type of the key to be merged.
+By default the merge behavior is to **not merge**, which means the first occurrence will be returned and the lookup stopped.
+
+The other merge behaviors depends on the (rough) data type of the key to be merged.
 
 Datum identifies 4 [main types](./Datum/Private/Get-DatumType.ps1) in whatever matches first the following:
+
 - **Hashtable**: Hashtables or Ordered Dictionaries
-- **Array of Hashtables**: Every `IEnumerable` (except string) that can be casted `-as [Hastable[]]`
+- **Array of Hashtables**: Every `IEnumerable` (except string) that can be casted `-as [Hashtable[]]`
 - **Array of Base type** objects: Every other `IEnumerable` (except string)
 - **Base Types**: Everything else (Int, String, PSCredential, DateTime...)
 
+Their merge behavior can be defined in the `Datum.yml`, either by using a Short name that reference a preset, or a structure that details the behavior based on the type.
 
-Their merge behaviour can be defined in the `Datum.yml`, either by using a Short name that reference a preset, or a structure that details the behaviour based on the type.
-
-There is a default Behaviour (`MostSpecific` by default), and you can specify ordered overrides:
+There is a default Behavior (`MostSpecific` by default), and you can specify ordered overrides:
 
 ```Yaml
 default_lookup_options: MostSpecific
 ```
+
 This is the recommended setting and also the default, so that any sub-key merge has to be explicitly declared like so:
+
 ```Yaml
 lookup_options:
   <Key Name>: MostSpecific/First|hash/MergeTopKeys|deep/MergeRecursively
@@ -656,11 +658,12 @@ lookup_options:
         - Name
         - Version
 ```
+
 The key to be used here is the suffix as used in with the `Lookup` function: e.g. 'Configurations', 'Role1\Data1'.
 
 Each layer will be merged with the result of the previous layer merge:
 
-```
+```text
 Precedence 0 +
              |
              +---+ Merge 0+-+
@@ -676,7 +679,8 @@ Precedence 4  +--------------------------+
 ```
 
 The Short name presets represent the following:
-```
+
+```Yaml
 First, MostSpecific or any un-matched string:
   merge_hash: MostSpecific
   merge_baseType_array: MostSpecific
@@ -689,7 +693,7 @@ hash or MergeTopKeys:
     merge_options:
       knockout_prefix: '--'
 
-depp or MergeRecursively:
+deep or MergeRecursively:
   merge_hash: deep
   merge_baseType_array: Unique
   merge_hash_array: DeepTuple
@@ -701,6 +705,7 @@ depp or MergeRecursively:
 ```
 
 The Lookup Options can also define keys using a (valid) Regex, for this the key has to start with `^`, for instance:
+
 ```Yaml
 lookup_options:
   ^LCM_Config\\.*: deep
@@ -734,9 +739,9 @@ SoftwareBaseline:
 
 You want the packages to have a deep tuple merge (that is, merge the hashtables based on matching key/values pairs, where `$ArrayItem.Property1 -eq $otherArrayItem.Property1`, more on this later).
 
-If the default Merge behaviour is MostSpecific, and no override exist for `SoftwareBaseline`, it will never merge Packages, and always return the Most specific.
+If the default Merge behavior is MostSpecific, and no override exist for `SoftwareBaseline`, it will never merge Packages, and always return the Most specific.
 
-If you add a Merge behaviour for the key `SoftwareBaseline` of hash, it will merge the keys `PackageFeed` and `Packages` but not below, that means the result for a `Lookup SoftwareBaseline will be (assuming the Role has the lowest ResolutionPrecedence):
+If you add a Merge behavior for the key `SoftwareBaseline` of hash, it will merge the keys `PackageFeed` and `Packages` but not below, that means the result for a `Lookup SoftwareBaseline will be (assuming the Role has the lowest ResolutionPrecedence):
 
 ```Yaml
 SoftwareBaseline:
@@ -763,12 +768,12 @@ lookup_options:
         - Version
 ```
 
-If you omit the first key (`SoftwareBaseline`), and the Lookup is only doing a lookup of that root key, it will never **'walk down'** the variable to see what needs  merging below the top key. This is the default behaviour in DscInfraSample's `RootConfiguration.ps1`.
+If you omit the first key (`SoftwareBaseline`), and the Lookup is only doing a lookup of that root key, it will never **'walk down'** the variable to see what needs  merging below the top key. This is the default behavior in DscInfraSample's `RootConfiguration.ps1`.
 
-However, if you do a lookup directly to the subkey, `Lookup 'SofwareBaseline\Packages'`, it'll now work (as it does not have to **'walk down'** the variable).
+However, if you do a lookup directly to the subkey, `Lookup 'SoftwareBaseline\Packages'`, it'll now work (as it does not have to **'walk down'** the variable).
 
 #### Lookup Options
- 
+
 - Default
 - general
 - per lookup override
@@ -792,4 +797,4 @@ After these two main contributors moved on from DSC and Pull Server mode, the pr
 
 I [refreshed this](https://github.com/gaelcolas/DscConfigurationData) to be more geared for PowerShell 5, and updated the dependencies as some projects had evolved and moved to different maintainers, locations, and name.
 
-As I was re-writing it, I found that the version offered a very good way to manage configuration data, but in a prescriptive way, lacking a bit of flexibility for some much needed customisation (layers and ordering). Steve also pointed me to [Chef's Databag](https://docs.chef.io/data_bags.html), and later I discovered [Puppet's Hiera](https://docs.puppet.com/hiera/3.3/complete_example.html), which is where I get most of my inspiration.
+As I was re-writing it, I found that the version offered a very good way to manage configuration data, but in a prescriptive way, lacking a bit of flexibility for some much needed customization (layers and ordering). Steve also pointed me to [Chef's Databag](https://docs.chef.io/data_bags.html), and later I discovered [Puppet's Hiera](https://docs.puppet.com/hiera/3.3/complete_example.html), which is where I get most of my inspiration.
