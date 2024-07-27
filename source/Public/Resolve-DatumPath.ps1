@@ -46,7 +46,7 @@ function Resolve-DatumPath
             $pathItem = $currentNode.($ExecutionContext.InvokeCommand.ExpandString($stackItem))
         }
 
-        # if $pathItem is $null, it won't have subkeys, stop execution for this Prefix
+        # if $pathItem is $null, it don't have subkeys, stop execution for this Prefix
         if ($null -eq $pathItem)
         {
             Write-Verbose -Message " NULL FOUND at `$Datum.$($ExecutionContext.InvokeCommand.ExpandString(($relativePath -join $propertySeparator) -f [string[]]$PathVariables))`t`t <`$Datum$propertySeparator$(($relativePath -join $propertySeparator) -f [string[]]$PathVariables)>"
